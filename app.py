@@ -29,9 +29,9 @@ def matrix_mul(m1, m2):
     else:
         for z in range(0, len(m1)):
             t = []
-            for j in range(0, len(m2[0])):
+            for j in range(len(m2[0])):
                 s = 0
-                for i in range(0, len(m1[0])):
+                for i in range(len(m1[0])):
                     s += m1[z][i] * m2[i][j]
                 t.append(s)
             res.append(t)
@@ -43,11 +43,10 @@ def decompose(matrix):
         [0 for __ in range(len(matrix))] for _ in range(len(matrix))]
 
     for i in range(len(matrix)):
-        u_matrix[0][i] = matrix[0][i]
-        l_matrix[i][0] = matrix[i][0] / u_matrix[0][0]
+        l_matrix[i][i] = 1
 
-    for i in range(1, len(matrix)):
-        for j in range(1, len(matrix)):
+    for i in range(len(matrix)):
+        for j in range(len(matrix)):
             if i <= j:
                 u_matrix[i][j] = get_u(matrix, l_matrix, u_matrix, i, j)
             else:
@@ -58,7 +57,7 @@ def decompose(matrix):
 
 def get_u(matrix, l_matrix, u_matrix, i, j):
     sum = 0
-    for k in range(i - 1):
+    for k in range(i):
         sum += l_matrix[i][k] * u_matrix[k][j]
 
     sum = matrix[i][j] - sum
@@ -67,7 +66,7 @@ def get_u(matrix, l_matrix, u_matrix, i, j):
 
 def get_l(matrix, l_matrix, u_matrix, i, j):
     sum = 0
-    for k in range(j - 1):
+    for k in range(j):
         sum += l_matrix[i][k] * u_matrix[k][j]
 
     sum = matrix[i][j] - sum
