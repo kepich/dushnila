@@ -1,15 +1,18 @@
 epsilon = 0.0000001
+is_debug = False
 
 
 def run():
     matrix, frees = read_matrix("input.txt")
     u_matrix, l_matrix = decompose(matrix)
 
-    # print("Невязка: ")
-    # print_matrix(matrix_sub(matrix, matrix_mul(l_matrix, u_matrix)))
+    if is_debug:
+        print("Невязка (исходная - полученная): ")
+        print_matrix(matrix_sub(matrix, matrix_mul(l_matrix, u_matrix)))
 
     solve_system(matrix, l_matrix, u_matrix, frees)
     determinant(u_matrix)
+    matrix_reverse(l_matrix, u_matrix)
 
 
 def read_matrix(filename):
@@ -23,11 +26,12 @@ def read_matrix(filename):
         matrix.append(row[:-1])
         frees.append(row[-1])
 
-    # print("Input matrix: ")
-    # print_matrix(matrix)
-    #
-    # print("Input frees: ")
-    # print(frees)
+    if is_debug:
+        print("Исходная матрица: ")
+        print_matrix(matrix)
+
+        print("Свободные члены: ")
+        print(frees)
 
     return matrix, frees
 
@@ -54,11 +58,12 @@ def decompose(matrix):
             else:
                 l_matrix[i][j] = get_l(matrix, l_matrix, u_matrix, i, j)
 
-    # print("U-matrix: ")
-    # print_matrix(u_matrix)
-    #
-    # print("L-matrix: ")
-    # print_matrix(l_matrix)
+    if is_debug:
+        print("U-матрица: ")
+        print_matrix(u_matrix)
+
+        print("L-матрица: ")
+        print_matrix(l_matrix)
 
     return u_matrix, l_matrix
 
@@ -126,8 +131,9 @@ def perform_y(frees, l_matrix):
         for k in range(i):
             y_vector[i] -= l_matrix[i][k] * y_vector[k]
 
-    # print("Y vector: ")
-    # print(y_vector)
+    if is_debug:
+        print("Y вектор: ")
+        print(y_vector)
 
     return y_vector
 
@@ -141,9 +147,6 @@ def perform_x(y_vector, u_matrix):
             x_vector[x_vector_index] -= u_matrix[x_vector_index][k] * y_vector[k]
         x_vector[x_vector_index] /= u_matrix[x_vector_index][x_vector_index]
 
-    # print("X vector: ")
-    # print(x_vector)
-
     return x_vector
 
 
@@ -153,6 +156,46 @@ def determinant(u_matrix):
         det *= u_matrix[i][i]
 
     print("Определитель: " + str(det))
+
+
+def matrix_reverse(l_matrix, u_matrix):
+    result = [[0 for _ in l_matrix[0]] for __ in l_matrix]
+
+    for index in range(len(result)):
+        i = len(result) - 1 - index
+
+        perform_diagonal(i, u_matrix, result)
+
+        for row in range(1, i):
+            perform_column(i - row, i, u_matrix, result)
+
+        for col in range(1, i):
+            perform_row(i, i - col, l_matrix, result)
+
+
+
+
+def perform_diagonal(j, u_matrix, result):
+    result[j][j] = 1
+
+    for k in range(j + 1, len(result)):
+        result[j][j] -= u_matrix[j][k] * result[k][j]
+    result[j][j] /= u_matrix[j][j]
+
+
+def perform_column(i, j, u_matrix, result):
+    result[i][j] = 0
+
+    for k in range(i + 1, len(result)):
+        result[i][j] += u_matrix[i][k] * result[k][j]
+    result[i][j] /= - u_matrix[i][i]
+
+
+def perform_row(i, j, l_matrix, result):
+    result[i][j] = 0
+
+    for k in range(j + 1, len(result)):
+        result[i][j] -= result[i][k] * l_matrix[k][j]
 
 
 if __name__ == '__main__':
