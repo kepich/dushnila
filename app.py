@@ -5,10 +5,11 @@ def run():
     matrix, frees = read_matrix("input.txt")
     u_matrix, l_matrix = decompose(matrix)
 
-    print("Multiply: ")
-    print_matrix(matrix_mul(l_matrix, u_matrix))
+    # print("Невязка: ")
+    # print_matrix(matrix_sub(matrix, matrix_mul(l_matrix, u_matrix)))
 
     solve_system(matrix, l_matrix, u_matrix, frees)
+    determinant(u_matrix)
 
 
 def read_matrix(filename):
@@ -18,15 +19,15 @@ def read_matrix(filename):
     frees = []
 
     for line in file.readlines():
-        row = list(map(lambda n: int(n), line.strip().split(" ")))
+        row = list(map(lambda n: float(n), line.strip().split(" ")))
         matrix.append(row[:-1])
         frees.append(row[-1])
 
-    print("Input matrix: ")
-    print_matrix(matrix)
-
-    print("Input frees: ")
-    print(frees)
+    # print("Input matrix: ")
+    # print_matrix(matrix)
+    #
+    # print("Input frees: ")
+    # print(frees)
 
     return matrix, frees
 
@@ -53,11 +54,11 @@ def decompose(matrix):
             else:
                 l_matrix[i][j] = get_l(matrix, l_matrix, u_matrix, i, j)
 
-    print("U-matrix: ")
-    print_matrix(u_matrix)
-
-    print("L-matrix: ")
-    print_matrix(l_matrix)
+    # print("U-matrix: ")
+    # print_matrix(u_matrix)
+    #
+    # print("L-matrix: ")
+    # print_matrix(l_matrix)
 
     return u_matrix, l_matrix
 
@@ -98,8 +99,24 @@ def matrix_mul(m1, m2):
     return res
 
 
+def matrix_sub(m1, m2):
+    m_res = []
+    for i in range(len(m1)):
+        m_res.append([])
+        for j in range(len(m1[0])):
+            m_res[i].append(m1[i][j] - m2[i][j])
+
+    return m_res
+
+
 def solve_system(matrix, l_matrix, u_matrix, frees):
     y_vector = perform_y(frees, l_matrix)
+    x_vector = perform_x(y_vector, u_matrix)
+
+    print("Решение СЛАУ: " + str(x_vector))
+
+    result_frees = matrix_mul(matrix, [[i] for i in x_vector])
+    print("Невязки: " + str(matrix_sub(result_frees, [[i] for i in frees])))
 
 
 def perform_y(frees, l_matrix):
@@ -109,10 +126,34 @@ def perform_y(frees, l_matrix):
         for k in range(i):
             y_vector[i] -= l_matrix[i][k] * y_vector[k]
 
-    print("Y vector: ")
-    print(y_vector)
+    # print("Y vector: ")
+    # print(y_vector)
 
     return y_vector
+
+
+def perform_x(y_vector, u_matrix):
+    x_vector = [i for i in y_vector]
+
+    for i in range(len(y_vector)):
+        x_vector_index = len(y_vector) - 1 - i
+        for k in range(x_vector_index + 1, len(y_vector)):
+            x_vector[x_vector_index] -= u_matrix[x_vector_index][k] * y_vector[k]
+        x_vector[x_vector_index] /= u_matrix[x_vector_index][x_vector_index]
+
+    # print("X vector: ")
+    # print(x_vector)
+
+    return x_vector
+
+
+def determinant(u_matrix):
+    det = 1
+    for i in range(len(u_matrix)):
+        det *= u_matrix[i][i]
+
+    print("Определитель: " + str(det))
+
 
 if __name__ == '__main__':
     run()
